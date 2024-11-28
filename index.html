@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TaskMaster</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      padding: 0;
+      background-color: #f5f5f5;
+    }
+    #app {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    #task-list div {
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 5px;
+      background-color: #fafafa;
+    }
+    #task-form input, #task-form select, #task-form button {
+      display: block;
+      width: 100%;
+      margin: 5px 0;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+    #task-form button {
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+    #task-form button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <h1>TaskMaster</h1>
+    <div id="task-list"></div>
+    <form id="task-form">
+      <input type="text" id="title" placeholder="Task Title" required />
+      <input type="text" id="description" placeholder="Description" />
+      <input type="date" id="deadline" />
+      <select id="priority">
+        <option value="low">Low</option>
+        <option value="medium">Medium</option>
+        <option value="high">High</option>
+      </select>
+      <button type="submit">Add Task</button>
+    </form>
+  </div>
+  <script>
+    const API_URL = 'http://localhost:5000/api';
+
+    async function fetchTasks() {
+      const res = await fetch(`${API_URL}/tasks`, {
+        headers: { Authorization: localStorage.getItem('token') },
+      });
+      const tasks = await res.json();
+      const taskList = document.getElementById('task-list');
+      taskList.innerHTML = '';
+      tasks.forEach(task => {
+        const div = document.createElement('div');
+        div.textContent = `${task.title} (${task.priority}) - ${task.deadline}`;
+        taskList.appendChild(div);
+      });
+    }
+
+    document.getElementById('task-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const title = document.getElementById('title').value;
+      const description = document.getElementById('description').value;
+      const priority = document.getElementById('priority').value;
+      const deadline = document.getElementById('deadline').value;
+
+      await fetch(`${API_URL}/tasks`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: localStorage.getItem('token'),
+        },
+        body: JSON.stringify({ title, description, priority, deadline }),
+      });
+      fetchTasks();
+    });
+
+    fetchTasks();
+  </script>
+</body>
+</html>
